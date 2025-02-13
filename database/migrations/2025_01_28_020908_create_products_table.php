@@ -6,19 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateProductsTable extends Migration
 {
-    
-    public function up()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->decimal('price');
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->string('image')->nullable();
+            $table->string('name'); // ชื่อสินค้า
+            $table->string('image_url'); // URL ของภาพสินค้า
+            $table->decimal('price', 10, 2); // ราคาสินค้า
+            $table->decimal('original_price', 10, 2)->nullable(); // ราคาต้นทุนของสินค้า
+            $table->decimal('rating', 3, 2)->nullable(); // คะแนนรีวิวสินค้า
+            $table->integer('review_count')->default(0); // จำนวนรีวิว
+            $table->text('description')->nullable(); // รายละเอียดสินค้า
+            $table->string('category');
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.
@@ -27,5 +32,5 @@ class CreateProductsTable extends Migration
     {
         Schema::dropIfExists('products');
     }
-};
+}
 

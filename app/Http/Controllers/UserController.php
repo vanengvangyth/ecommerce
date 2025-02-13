@@ -51,4 +51,10 @@ class UserController extends Controller
         $response = ['message' => 'Incrorect email or password'];
         return response()->json($response, 400);
     } 
+
+    public function getAll()
+    {
+        $users = User::all(); // Retrieve all users
+        return response()->json(['users' => $users], 200);
+    }
 }

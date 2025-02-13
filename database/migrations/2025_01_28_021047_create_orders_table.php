@@ -15,7 +15,11 @@ class CreateOrdersTable extends Migration
             $table->id();
             $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->decimal('total_amount');
+            $table->string('province');
+            $table->string('district');
+            $table->string('village');
             $table->timestamp('order_date');
+            $table->string('status');
             $table->timestamps();
         });
     }

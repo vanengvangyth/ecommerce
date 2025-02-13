@@ -4,68 +4,93 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class OrderController extends Controller
 {
-    // แสดงคำสั่งซื้อทั้งหมด (Read)
+    /**
+     * Display a listing of orders.
+     */
     public function index()
     {
-        return response()->json(Order::with('orderdetails.product')->get(), 200);
+        $orders = Order::with('user', 'orderDetails.product')->get();
+        return response()->json($orders);
     }
 
-    // สร้างคำสั่งซื้อใหม่ (Create)
+    /**
+     * Store a newly created order in storage.
+     */
     public function store(Request $request)
     {
-        // Validation
         $validatedData = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'total_amount' => 'required|numeric|min:0',
+            'province' => 'required|string',
+            'district' => 'required|string',
+            'village' => 'required|string',
+            'total_amount' => 'required|numeric',
             'order_date' => 'required|date',
+            'status' => 'required|string',
         ]);
 
-        // สร้างคำสั่งซื้อใหม่
         $order = Order::create($validatedData);
-
-        return response()->json($order, 201);
+        return response()->json($order, Response::HTTP_CREATED);
     }
 
-    // แสดงคำสั่งซื้อตาม ID (Read)
+    /**
+     * Display the specified order.
+     */
     public function show($id)
     {
-        // ใช้ findOrFail แทน find เพื่อจะได้ error 404 เมื่อไม่พบข้อมูล
-        $order = Order::with('orderdetails.product')->findOrFail($id);
-
-        return response()->json($order, 200);
+        $order = Order::with('user', 'orderDetails')->findOrFail($id);
+        return response()->json($order);
     }
 
-    // อัปเดตคำสั่งซื้อ (Update)
+    public function getOrderByUser($id)
+    {
+        $orders = Order::with(['user', 'orderDetails.product'])
+                   ->where('user_id', $id)
+                   ->get();
+        return response()->json($orders);
+    }
+
+    /**
+     * Update the specified order in storage.
+     */
     public function update(Request $request, $id)
     {
-        // ใช้ findOrFail เพื่อให้เกิด error 404 หากไม่พบคำสั่งซื้อ
         $order = Order::findOrFail($id);
 
-        // Validation
         $validatedData = $request->validate([
-            'user_id' => 'sometimes|exists:users,id',
-            'total_amount' => 'sometimes|numeric|min:0',
+            'province' => 'sometimes|string',
+            'district' => 'sometimes|string',
+            'village' => 'sometimes|string',
+            'total_amount' => 'sometimes|numeric',
             'order_date' => 'sometimes|date',
         ]);
 
-        // อัปเดตคำสั่งซื้อ
         $order->update($validatedData);
-
-        return response()->json($order, 200);
+        return response()->json($order);
     }
 
-    // ลบคำสั่งซื้อ (Delete)
-    public function destroy($id)
+    public function updateStatus(Request $request, $id)
     {
-        // ใช้ findOrFail เพื่อให้เกิด error 404 หากไม่พบคำสั่งซื้อ
         $order = Order::findOrFail($id);
 
-        // ลบคำสั่งซื้อ
+        $validatedData = $request->validate([
+            'status' => 'sometimes|string',
+        ]);
+
+        $order->update($validatedData);
+        return response()->json($order);
+    }
+
+    /**
+     * Remove the specified order from storage.
+     */
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
         $order->delete();
-        
-        return response()->json(['message' => 'Order deleted'], 200);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

@@ -2,91 +2,95 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\ProductResource;
-use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use App\Models\Product;
 
 class ProductController extends Controller
 {
-    // แสดงสินค้าทั้งหมด (Read)
+    /**
+     * Display a listing of products.
+     */
     public function index()
     {
-        $products = Product::with('category')->get();
-        if ($products->count() > 0) {
-            return ProductResource::collection($products);
-        }
-        return response()->json(['message' => 'No records found'], 200);
+        $products = Product::all();
+        return response()->json($products);
     }
 
-    // สร้างสินค้าใหม่ (Create)
+    /**
+     * Store a newly created product in storage.
+     */
     public function store(Request $request)
     {
-        try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'price' => 'required|numeric|min:0',
-                'category_id' => 'required|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-            ]);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'image_url' => 'nullable',
+            'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'rating' => 'nullable|numeric|between:0,5',
+            'review_count' => 'nullable|integer|min:0',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string',
+        ]);
 
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('products', 'public');
-                $validatedData['image'] = $imagePath;
-            }
+        $product = Product::create($validatedData);
 
-            $product = Product::create($validatedData);
-
-            return (new ProductResource($product))->response()->setStatusCode(201);
-        } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
+        return response()->json($product, 201);
     }
 
-    // แสดงสินค้าตาม ID (Read)
+    /**
+     * Display the specified product.
+     */
     public function show($id)
     {
-        $product = Product::with('category')->find($id);
+        $product = Product::find($id);
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        return new ProductResource($product);
+        return response()->json($product);
     }
 
-    // อัปเดตสินค้า (Update)
+    /**
+     * Update the specified product in storage.
+     */
     public function update(Request $request, $id)
     {
         $product = Product::find($id);
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        try {
-            $validatedData = $request->validate([
-                'name' => 'sometimes|string|max:255',
-                'price' => 'sometimes|numeric|min:0',
-                'category_id' => 'sometimes|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-            ]);
+        $validatedData = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'image_url' => 'nullable',
+            'price' => 'sometimes|required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'rating' => 'nullable|numeric|between:0,5',
+            'review_count' => 'nullable|integer|min:0',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string',
+        ]);
 
-            $product->update($validatedData);
+        $product->update($validatedData);
 
-            return new ProductResource($product);
-        } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
+        return response()->json($product);
     }
 
-    // ลบสินค้า (Delete)
+    /**
+     * Remove the specified product from storage.
+     */
     public function destroy($id)
     {
         $product = Product::find($id);
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
         $product->delete();
-        return response()->json(['message' => 'Product deleted'], 200);
+
+        return response()->json(['message' => 'Product deleted successfully']);
     }
 }
