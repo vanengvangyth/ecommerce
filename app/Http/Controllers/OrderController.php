@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
@@ -21,7 +22,8 @@ class OrderController extends Controller
      * Store a newly created order in storage.
      */
     public function store(Request $request)
-    {
+{
+    try {
         $validatedData = $request->validate([
             'user_id' => 'required|exists:users,id',
             'province' => 'required|string',
@@ -34,7 +36,13 @@ class OrderController extends Controller
 
         $order = Order::create($validatedData);
         return response()->json($order, Response::HTTP_CREATED);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'errors' => $e->errors()
+        ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
     }
+}
 
     /**
      * Display the specified order.

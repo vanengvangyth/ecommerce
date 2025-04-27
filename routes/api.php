@@ -34,7 +34,7 @@ Route::delete('/categories/destroy/{id}', [CategoryController::class, 'destroy']
 Route::get('/orders/index', [OrderController::class, 'index']);
 Route::post('/orders/store', [OrderController::class, 'store']);
 Route::get('/orders/show/{id}', [OrderController::class, 'show']);
-Route::get('/orders/byUser/{id}', [OrderController::class, 'getOrderByUser']);
+Route::get('/orders/user/{id}', [OrderController::class, 'getOrderByUser']);
 Route::put('/orders/update/{id}', [OrderController::class, 'update']);
 Route::put('/orders/updateStatus/{id}', [OrderController::class, 'updateStatus']);
 Route::delete('/orders/destroy/{id}', [OrderController::class, 'destroy']);
